@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -e -u -x
+
+killall -v sn_node || true
+rm -v -r -f ~/.safe/node/{local-test-network,node_connection_info.config} || true
+
+(cd ~/zone/maidsafe/safe_network
+
+ RUST_LOG=safe_network=info  cargo run --bin testnet
+
+ # Optional
+ # cargo run --bin safe -- networks add testnet-$(date -Iseconds)
+)
+
+tail -f ~/.safe/node/local-test-network/sn-node-*/sn_node.log
