@@ -1,0 +1,11 @@
+[package]
+name = "mbus"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+sn_api = "*"
+
+[dev-dependencies]
+tokio = "1"
+helpers = { path = "../helpers" }
