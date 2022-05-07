@@ -1,21 +1,30 @@
-// Re-exporting from `sn_api::test_helpers` requires my modified `expose--test_helpers` branch of
-// `sn_api`, which is not ideal, but is quick and easy.  Instead, it seems like the desired
-// functions could be re-implemented here to provide them, but that would be more involved.
-
-pub use sn_api::test_helpers::{
-    new_read_only_safe_instance,
-    new_safe_instance,
+pub use sn_client::utils::test_utils::read_network_conn_info;
+use sn_client::{
+    Client,
+    ClientConfig,
 };
+
+
+pub async fn connect_to_testnet() -> Result<Client, Box<dyn std::error::Error>>
+{
+    let (genesis_key, bootstrap_nodes) = read_network_conn_info()?;
+    let config = ClientConfig::new(None, None, genesis_key, None, None, None, None).await;
+    Ok(Client::new(config, bootstrap_nodes, None).await?)
+}
+
 
 #[cfg(test)]
 mod tests
 {
-    use super::*;
+    #[test]
+    fn read_network_conn_info()
+    {
+        let _a = super::read_network_conn_info().unwrap();
+    }
 
     #[tokio::test]
-    async fn it_works()
+    async fn connect_to_testnet()
     {
-        let _a = new_safe_instance().await.unwrap();
-        let _b = new_read_only_safe_instance().await.unwrap();
+        let _a = super::connect_to_testnet().await.unwrap();
     }
 }

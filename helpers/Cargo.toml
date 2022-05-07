@@ -4,7 +4,7 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-sn_api = { git = "file:///home/z/zone/maidsafe/safe_network", branch = "expose--test_helpers" }
+sn_client = { version = "*", features = ["test-utils"] }
 
 [dev-dependencies]
 tokio = "1"

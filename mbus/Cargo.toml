@@ -4,7 +4,10 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-sn_api = "*"
+sn_client = "*"
+sn_interface = "*"
+xor_name = "*"
+rand = "0.8"
 
 [dev-dependencies]
 tokio = "1"
