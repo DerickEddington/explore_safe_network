@@ -69,6 +69,7 @@ mod tests
     use {
         super::*,
         helpers::connect_to_testnet,
+        sn_interface::types::register::Register,
         std::collections::BTreeSet,
     };
 
@@ -76,19 +77,25 @@ mod tests
     async fn basis()
     {
         let owner_client = connect_to_testnet().await.unwrap();
+        let stranger_client = connect_to_testnet().await.unwrap();
+
+        let write_only_private_policy = super::write_only_private_policy(
+            owner_client.public_key(),
+            [User::Key(stranger_client.public_key())],
+        );
 
         let reg_name = random_xorname();
+        let reg_tag = 42;
+
         let r = owner_client
-            .create_register(
-                reg_name,
-                42,
-                write_only_private_policy(owner_client.public_key(), [User::Anyone]),
-            )
+            .create_register(reg_name, reg_tag, write_only_private_policy.clone())
             .await
             .unwrap();
         dbg!(&r);
         let (reg_addr, ops_that_create) = r;
         owner_client.publish_register_ops(ops_that_create).await.unwrap();
+
+        // Owner writes an entry.
 
         let r = owner_client
             .write_to_register(reg_addr, vec![1, 2, 3], BTreeSet::new())
@@ -101,18 +108,28 @@ mod tests
         let r = owner_client.read_register(reg_addr).await.unwrap();
         dbg!(&r);
 
+        // Stranger writes an entry without read permission.
 
-        let stranger_client = connect_to_testnet().await.unwrap();
+        let stranger_replica = &mut Register::new(
+            *reg_addr.name(),
+            reg_tag,
+            write_only_private_policy.clone(),
+            u16::MAX,
+        );
 
         let r = stranger_client
-            .write_to_register(reg_addr, vec![9, 8, 7], BTreeSet::new())
-            .await
+            .write_to_register_without_read(stranger_replica, vec![9, 8, 7], BTreeSet::new())
             .unwrap();
         dbg!(&r);
         let (_entry_hash, ops_that_write) = r;
         stranger_client.publish_register_ops(ops_that_write).await.unwrap();
 
-        let r = stranger_client.read_register(reg_addr).await.unwrap();
-        dbg!(&r);
+        // Owner reads what stranger wrote.
+
+        let entries = owner_client.read_register(reg_addr).await.unwrap();
+        dbg!(&entries);
+        let mut entries: Vec<_> = entries.iter().cloned().map(|(_, entry)| entry).collect();
+        entries.sort();
+        assert_eq!(entries, vec![vec![1, 2, 3], vec![9, 8, 7]]);
     }
 }
