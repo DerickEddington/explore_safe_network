@@ -37,6 +37,7 @@ fn write_only_private_policy(
 
 pub const TYPE_TAG: u64 = 0x079f8e78da75c9e7; // random generated
 
+#[allow(dead_code)] // TODO
 pub struct MBus
 {
     client:   Client,
