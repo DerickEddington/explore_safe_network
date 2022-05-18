@@ -8,6 +8,7 @@ use {
             PrivatePolicy,
             User,
         },
+        PublicKey,
         RegisterAddress,
     },
     std::collections::BTreeMap,
@@ -18,6 +19,19 @@ use {
 fn random_xorname() -> XorName
 {
     XorName::random(&mut OsRng)
+}
+
+fn write_only_private_policy(
+    owner: PublicKey,
+    users: impl IntoIterator<Item = User>,
+) -> Policy
+{
+    let write_only_perm = PrivatePermissions::new(false, true);
+    PrivatePolicy {
+        owner:       User::Key(owner),
+        permissions: BTreeMap::from_iter(users.into_iter().map(|user| (user, write_only_perm))),
+    }
+    .into()
 }
 
 
@@ -37,13 +51,7 @@ impl MBus
             .create_register(
                 random_xorname(),
                 TYPE_TAG,
-                Policy::Private(PrivatePolicy {
-                    owner:       User::Key(client.public_key()),
-                    permissions: BTreeMap::from_iter([(
-                        User::Anyone,
-                        PrivatePermissions::new(false, true),
-                    )]),
-                }),
+                write_only_private_policy(client.public_key(), [User::Anyone]),
             )
             .await?;
 
@@ -60,10 +68,7 @@ mod tests
     use {
         super::*,
         helpers::connect_to_testnet,
-        std::collections::{
-            BTreeMap,
-            BTreeSet,
-        },
+        std::collections::BTreeSet,
     };
 
     #[tokio::test]
@@ -76,13 +81,7 @@ mod tests
             .create_register(
                 reg_name,
                 42,
-                Policy::Private(PrivatePolicy {
-                    owner:       User::Key(owner_client.public_key()),
-                    permissions: BTreeMap::from_iter([(
-                        User::Anyone,
-                        PrivatePermissions::new(false, true),
-                    )]),
-                }),
+                write_only_private_policy(owner_client.public_key(), [User::Anyone]),
             )
             .await
             .unwrap();
