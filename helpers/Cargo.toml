@@ -4,7 +4,7 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-sn_client = { path = "../../maidsafe/safe_network/sn_client", features = ["test-utils"] }
+sn_client = { version = "*", features = ["test-utils"] }
 
 [dev-dependencies]
 tokio = "1"
