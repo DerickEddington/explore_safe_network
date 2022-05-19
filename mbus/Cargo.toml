@@ -4,8 +4,8 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-sn_client = { path = "../../maidsafe/safe_network/sn_client" }
-sn_interface = { path = "../../maidsafe/safe_network/sn_interface" }
+sn_client = { git = "https://github.com/DerickEddington/safe_network.git", branch = "kcired/write-only-registers" }
+sn_interface = { git = "https://github.com/DerickEddington/safe_network.git", branch = "kcired/write-only-registers" }
 xor_name = "*"
 rand = "0.8"
 

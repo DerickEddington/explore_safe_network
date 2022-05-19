@@ -4,7 +4,7 @@ set -e -u -x
 killall -v sn_node || true
 rm -v -r -f ~/.safe/node/{local-test-network,node_connection_info.config} || true
 
-(cd ~/zone/maidsafe/safe_network
+(cd ../safe_network
 
  RUST_LOG=safe_network=info  cargo run --bin testnet
 
