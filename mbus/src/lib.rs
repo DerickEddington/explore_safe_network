@@ -73,6 +73,25 @@ mod tests
         std::collections::BTreeSet,
     };
 
+    fn is_access_denied<T>(
+        result: Result<T, sn_client::Error>,
+        public_key: PublicKey,
+    ) -> bool
+    {
+        use {
+            sn_client::Error::ErrorMsg,
+            sn_interface::messaging::data::Error::AccessDenied,
+        };
+
+        matches!(
+            result,
+            Err(ErrorMsg {
+                source: AccessDenied(User::Key(pk)),
+                op_id:  _,
+            }) if pk == public_key
+        )
+    }
+
     #[tokio::test]
     async fn basis()
     {
@@ -108,6 +127,13 @@ mod tests
         let r = owner_client.read_register(reg_addr).await.unwrap();
         dbg!(&r);
 
+        // Stranger cannot read.
+
+        let r = stranger_client.read_register(reg_addr).await;
+        dbg!(&r);
+        // TODO: BUG: Sometimes true but sometimes false!
+        assert!(is_access_denied(r, stranger_client.public_key()));
+
         // Stranger writes an entry without read permission.
 
         let stranger_replica = &mut Register::new(
@@ -131,5 +157,12 @@ mod tests
         let mut entries: Vec<_> = entries.iter().cloned().map(|(_, entry)| entry).collect();
         entries.sort();
         assert_eq!(entries, vec![vec![1, 2, 3], vec![9, 8, 7]]);
+
+        // Stranger cannot read.
+
+        let r = stranger_client.read_register(reg_addr).await;
+        dbg!(&r);
+        // TODO: BUG: Sometimes true but sometimes false!
+        assert!(is_access_denied(r, stranger_client.public_key()));
     }
 }
